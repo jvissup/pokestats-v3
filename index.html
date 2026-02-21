@@ -1,65 +1,297 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokémon Stat Picker Game</title>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        .hidden { display: none; }
-        #total-score { margin-top: 20px; font-weight: bold; }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PokéStat Pick — Simple Game</title>
+  <style>
+    :root{
+      --bg:#0f172a;
+      --panel:#111827;
+      --panel2:#0b1220;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --border:#1f2937;
+      --accent:#22d3ee;
+      --accent2:#a78bfa;
+      --good:#34d399;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial;
+      background: radial-gradient(1200px 600px at 30% 0%, #0b1224 0%, var(--bg) 45%);
+      color:var(--text);
+    }
+    .container{max-width:900px;margin:0 auto;padding:28px 16px 60px}
+    header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:16px}
+    h1{margin:0;font-size:26px;letter-spacing:.2px}
+    .sub{color:var(--muted);margin:6px 0 0;line-height:1.4}
+    .panel{
+      background:linear-gradient(180deg,var(--panel2),var(--panel));
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:16px;
+    }
+    .row{display:grid;grid-template-columns:1fr;gap:14px}
+    @media(min-width:860px){.row{grid-template-columns:1fr 1fr}}
+
+    .btn{
+      cursor:pointer;
+      border:1px solid var(--border);
+      background:var(--panel2);
+      color:var(--text);
+      padding:10px 14px;
+      border-radius:12px;
+      font-weight:700;
+      transition: transform .06s ease, border-color .2s ease, background .2s ease;
+    }
+    .btn:hover{transform:translateY(-1px);border-color:#334155;background:#0e1626}
+    .btn:active{transform:translateY(0px)}
+    .btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+    .btn-primary{
+      background: linear-gradient(180deg, #0ea5b8, #0891b2);
+      border-color:#0ea5b8;
+    }
+    .btn-primary:hover{background: linear-gradient(180deg, #22d3ee, #06b6d4)}
+
+    .kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+    .kpi{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:12px}
+    .kpi .ttl{font-size:12px;color:var(--muted)}
+    .kpi .num{font-size:22px;font-weight:900;margin-top:4px}
+
+    .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    @media(min-width:620px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    .stat{
+      background:var(--panel2);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px;
+      display:grid;
+      gap:8px;
+    }
+    .stat .name{font-size:12px;color:var(--muted);letter-spacing:.3px;text-transform:uppercase}
+    .stat .value{font-size:20px;font-weight:900}
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(34,211,238,.08);
+      color:var(--text);
+      font-size:12px;
+      font-weight:700;
+    }
+
+    table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:12px}
+    th,td{padding:10px 10px;border-bottom:1px solid var(--border);font-size:13px}
+    th{color:#cbd5e1;text-align:left;font-weight:800;background:rgba(255,255,255,.03)}
+    tbody tr:last-child td{border-bottom:none}
+    .muted{color:var(--muted)}
+    .good{color:var(--good)}
+
+    .hidden{display:none !important}
+  </style>
 </head>
 <body>
-    <h1>Pokémon Stat Picker Game</h1>
-    <button id="start-game">Start Game</button>
-    <div id="game-area" class="hidden">
-        <h2>Select Your Pokémon Stats</h2>
-        <div id="stats-container"></div>
-        <button id="submit-picks">See Total Score</button>
-        <p id="total-score" class="hidden"></p>
+  <div class="container">
+    <header>
+      <div>
+        <h1>PokéStat Pick — Simple Game</h1>
+        <div class="sub">Click a stat to lock it in. You’ll immediately see the score you got for that pick. When you’ve picked all 6 stats, see your total.</div>
+      </div>
+      <div class="pill" id="lockNote">Picks lock immediately</div>
+    </header>
+
+    <div class="row">
+      <section class="panel">
+        <div class="kpis">
+          <div class="kpi"><div class="ttl">Picks</div><div class="num" id="kPicks">0 / 6</div></div>
+          <div class="kpi"><div class="ttl">Total</div><div class="num" id="kTotal">0</div></div>
+          <div class="kpi"><div class="ttl">Status</div><div class="num" id="kStatus">Ready</div></div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+          <button class="btn btn-primary" id="btnStart">Start game</button>
+          <button class="btn" id="btnReset" disabled>Play again</button>
+        </div>
+
+        <div class="sub" style="margin:12px 0 0" id="helpText">Press Start to begin.</div>
+      </section>
+
+      <section class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:10px">
+          <div>
+            <div style="font-weight:900;font-size:16px">Pick a stat</div>
+            <div class="muted" style="font-size:13px">Each stat can only be used once.</div>
+          </div>
+          <div class="pill" id="usedPill">Used: 0</div>
+        </div>
+
+        <div id="statsContainer" class="stats"></div>
+      </section>
+
+      <section class="panel" style="grid-column:1/-1">
+        <div style="font-weight:900;margin-bottom:10px">Your picks</div>
+        <div style="overflow:auto">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Stat</th><th>Score</th><th class="muted">Locked</th></tr>
+            </thead>
+            <tbody id="picksTable"></tbody>
+          </table>
+        </div>
+        <div id="finalBox" class="sub hidden" style="margin-top:12px">
+          Final total: <span class="good" id="finalTotal">0</span>
+        </div>
+      </section>
     </div>
-    <script>
-        const stats = ["Attack", "Defense", "Speed", "Special Attack", "Special Defense", "HP"];
-        let selectedStats = [];
-        let totalScore = 0;
+  </div>
 
-        document.getElementById('start-game').addEventListener('click', function() {
-            this.classList.add('hidden');
-            document.getElementById('game-area').classList.remove('hidden');
-            generateStats();
+  <script>
+    "use strict";
+
+    // Simple mode: each stat can be picked once. When picked, reveal that stat's score immediately.
+    // (Keeps the original rule: picks are locked and cannot be changed.)
+
+    const STAT_LABELS = ["HP","Attack","Defense","Sp. Atk","Sp. Def","Speed"];
+
+    const btnStart = document.getElementById('btnStart');
+    const btnReset = document.getElementById('btnReset');
+    const statsContainer = document.getElementById('statsContainer');
+    const picksTable = document.getElementById('picksTable');
+
+    const kPicks = document.getElementById('kPicks');
+    const kTotal = document.getElementById('kTotal');
+    const kStatus = document.getElementById('kStatus');
+    const usedPill = document.getElementById('usedPill');
+    const helpText = document.getElementById('helpText');
+
+    const finalBox = document.getElementById('finalBox');
+    const finalTotal = document.getElementById('finalTotal');
+
+    let state = null;
+
+    function randScore(){
+      // Placeholder scoring: 1..100
+      return 1 + Math.floor(Math.random() * 100);
+    }
+
+    function setStatus(text){
+      kStatus.textContent = text;
+    }
+
+    function render(){
+      const picks = state.picks;
+      kPicks.textContent = `${picks.length} / 6`;
+      kTotal.textContent = String(state.total);
+      usedPill.textContent = `Used: ${state.used.size}`;
+
+      // Update buttons
+      btnStart.disabled = state.started;
+      btnReset.disabled = !state.started;
+
+      // Table
+      picksTable.replaceChildren();
+      picks.forEach((p, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${idx+1}</td><td>${p.stat}</td><td><b>${p.value}</b></td><td class=\"muted\">Yes</td>`;
+        picksTable.appendChild(tr);
+      });
+
+      if(picks.length === 6){
+        finalBox.classList.remove('hidden');
+        finalTotal.textContent = String(state.total);
+        helpText.textContent = 'Game complete. Hit Play again to restart.';
+        setStatus('Done');
+      } else if(state.started){
+        finalBox.classList.add('hidden');
+        helpText.textContent = 'Pick a stat. It will lock immediately.';
+        setStatus('Picking');
+      } else {
+        finalBox.classList.add('hidden');
+        helpText.textContent = 'Press Start to begin.';
+        setStatus('Ready');
+      }
+    }
+
+    function renderStats(){
+      statsContainer.replaceChildren();
+      STAT_LABELS.forEach((label, idx) => {
+        const card = document.createElement('div');
+        card.className = 'stat';
+
+        const name = document.createElement('div');
+        name.className = 'name';
+        name.textContent = label;
+
+        const value = document.createElement('div');
+        value.className = 'value';
+        value.textContent = state.used.has(idx) ? 'Locked' : '???';
+
+        const btn = document.createElement('button');
+        btn.className = 'btn';
+        btn.textContent = state.used.has(idx) ? 'Used' : `Pick ${label}`;
+        btn.disabled = !state.started || state.used.has(idx) || state.picks.length >= 6;
+
+        btn.addEventListener('click', () => {
+          if(state.used.has(idx) || state.picks.length >= 6) return;
+
+          const score = randScore();
+          state.used.add(idx);
+          state.picks.push({ stat: label, value: score });
+          state.total += score;
+
+          // Immediately reveal score on the card that was clicked
+          value.textContent = String(score);
+          btn.textContent = 'Locked';
+          btn.disabled = true;
+
+          render();
+          // Re-render all stat cards so other cards correctly show enabled/disabled
+          renderStats();
         });
 
-        function generateStats() {
-            const container = document.getElementById('stats-container');
-            container.innerHTML = '';
-            stats.forEach((stat, index) => {
-                const statDiv = document.createElement('div');
-                statDiv.innerText = stat;
-                const button = document.createElement('button');
-                button.innerText = 'Pick '
-                button.addEventListener('click', () => pickStat(stat, button));
-                statDiv.appendChild(button);
-                container.appendChild(statDiv);
-            });
-        }
+        card.appendChild(name);
+        card.appendChild(value);
+        card.appendChild(btn);
+        statsContainer.appendChild(card);
+      });
+    }
 
-        function pickStat(stat, button) {
-            if (selectedStats.length < 6 && !selectedStats.includes(stat)) {
-                selectedStats.push(stat);
-                totalScore += Math.floor(Math.random() * 100); // Example score logic
-                button.disabled = true;
-                button.innerText = 'Locked';
-                if (selectedStats.length === 6) {
-                    document.getElementById('submit-picks').classList.remove('hidden');
-                }
-            }
-        }
+    function startGame(){
+      state = {
+        started: true,
+        used: new Set(),
+        picks: [],
+        total: 0
+      };
+      render();
+      renderStats();
+    }
 
-        document.getElementById('submit-picks').addEventListener('click', function() {
-            document.getElementById('total-score').innerText = `Total Score: ${totalScore}`;
-            document.getElementById('total-score').classList.remove('hidden');
-        });
-    </script>
+    function resetGame(){
+      state = {
+        started: false,
+        used: new Set(),
+        picks: [],
+        total: 0
+      };
+      render();
+      renderStats();
+    }
+
+    btnStart.addEventListener('click', startGame);
+    btnReset.addEventListener('click', () => {
+      // immediate restart
+      startGame();
+    });
+
+    // init
+    resetGame();
+  </script>
 </body>
 </html>
