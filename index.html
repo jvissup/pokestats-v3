@@ -119,8 +119,15 @@
     }
     .modal-title{font-size:30px;font-weight:900;margin-bottom:4px}
     .modal-sub{font-size:13px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
-    .modal-score{font-size:100px;font-weight:900;color:var(--accent);line-height:1;margin:14px 0 30px}
-    .modal-btn{width:100%;font-size:18px;padding:16px}
+    .modal-score{font-size:100px;font-weight:900;color:var(--accent);line-height:1;margin:14px 0 24px}
+    .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+    .modal-btn{width:100%;font-size:16px;padding:14px}
+    .btn-good{background:linear-gradient(180deg,#22c55e,#16a34a);border-color:#22c55e;color:#fff}
+    .btn-good:hover{background:linear-gradient(180deg,#4ade80,#22c55e)}
+    .btn-warn{background:linear-gradient(180deg,#f43f5e,#e11d48);border-color:#f43f5e;color:#fff}
+    .btn-warn:hover{background:linear-gradient(180deg,#fb7185,#f43f5e)}
+    .log-paid{color:var(--good);font-weight:900}
+    .log-unpaid{color:var(--bad);font-weight:900}
 
     .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
     @media(min-width:640px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
@@ -220,6 +227,39 @@
           Final total: <span class="good" id="finalTotal">0</span>
         </div>
       </section>
+      <section class="panel" style="grid-column:1/-1" id="sessionLogSection">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+          <div style="font-weight:900">Session Log</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <span class="pill" id="logCountPill">0 sessions</span>
+            <button class="btn" id="btnExportLog">Export CSV</button>
+            <button class="btn" id="btnClearLog" style="color:var(--bad)">Clear Log</button>
+          </div>
+        </div>
+        <div style="overflow:auto">
+          <table aria-label="Session history log">
+            <thead>
+              <tr><th>#</th><th>Time</th><th>Score</th><th>Paid?</th></tr>
+            </thead>
+            <tbody id="sessionLogTable"></tbody>
+          </table>
+        </div>
+        <div class="footerNote">Sessions persist in your browser. Use Export CSV to save a copy.</div>
+      </section>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="scoreModal">
+    <div class="modal-box">
+      <div class="modal-title">🎉 Game Complete!</div>
+      <div class="modal-sub">Your final score</div>
+      <div class="modal-score" id="modalScore">0</div>
+      <div class="modal-sub" style="margin-bottom:14px">Was this session paid?</div>
+      <div class="modal-actions">
+        <button class="btn btn-good modal-btn" id="modalPaid">✓ Paid</button>
+        <button class="btn btn-warn modal-btn" id="modalUnpaid">✗ Not Paid</button>
+      </div>
+      <button class="btn modal-btn" id="modalSkip">Skip &amp; Play Again</button>
     </div>
   </div>
 
@@ -1279,6 +1319,19 @@ Number	Name	HP	Attack	Defense	Sp.Attack	Sp.Defense	Speed
   const finalBox = document.getElementById('finalBox');
   const finalTotal = document.getElementById('finalTotal');
 
+  // Score popup
+  const scoreModal = document.getElementById('scoreModal');
+  const modalScore = document.getElementById('modalScore');
+  const modalPaid = document.getElementById('modalPaid');
+  const modalUnpaid = document.getElementById('modalUnpaid');
+  const modalSkip = document.getElementById('modalSkip');
+
+  // Session log
+  const sessionLogTable = document.getElementById('sessionLogTable');
+  const logCountPill = document.getElementById('logCountPill');
+  const btnExportLog = document.getElementById('btnExportLog');
+  const btnClearLog = document.getElementById('btnClearLog');
+
   // --- Game constants ---
   const STAT_KEYS = ["hp","attack","defense","spa","spd","speed"];
   const STAT_LABELS = ["HP","Attack","Defense","Sp. Atk","Sp. Def","Speed"];
@@ -1392,14 +1445,65 @@ Number	Name	HP	Attack	Defense	Sp.Attack	Sp.Defense	Speed
     setStatus(`Playable pool: ${pool.length} Pokémon.`);
   }
 
+  // --- Session log (persisted in localStorage) ---
+  const LOG_KEY = 'pokestats_session_log';
+
+  function loadLog(){
+    try{ return JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); }
+    catch(_e){ return []; }
+  }
+
+  function saveLog(entries){ localStorage.setItem(LOG_KEY, JSON.stringify(entries)); }
+
+  function fmtTime(d){ return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
+  function fmtDate(d){ return d.toLocaleDateString(); }
+
+  function addLogEntry(score, paid){
+    const entries = loadLog();
+    entries.push({ ts: new Date().toISOString(), score, paid });
+    saveLog(entries);
+    renderLog();
+  }
+
+  function renderLog(){
+    const entries = loadLog();
+    sessionLogTable.replaceChildren();
+    entries.forEach((e, i) => {
+      const d = new Date(e.ts);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${i+1}</td><td>${fmtTime(d)}</td><td><b>${e.score}</b></td>`
+        + `<td class="${e.paid ? 'log-paid' : 'log-unpaid'}">${e.paid ? '✓ Paid' : '✗ Not Paid'}</td>`;
+      sessionLogTable.appendChild(tr);
+    });
+    const n = entries.length;
+    logCountPill.textContent = `${n} session${n !== 1 ? 's' : ''}`;
+  }
+
+  function exportLog(){
+    const entries = loadLog();
+    if(!entries.length){ setStatus('No sessions to export yet.'); return; }
+    const lines = ['#,Date,Time,Score,Status'];
+    entries.forEach((e, i) => {
+      const d = new Date(e.ts);
+      lines.push([i + 1, fmtDate(d), fmtTime(d), e.score, e.paid ? 'Paid' : 'Not Paid'].join(','));
+    });
+    const blob = new Blob([lines.join('\n')], {type:'text/csv'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `pokestats_log_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
   function setMonImage(number, name){
-    const num = String(number||'').replace(/[^0-9]/g,'');
-    if(!num || num.length !== 3){
+    const raw = String(number||'').replace(/[^0-9]/g,'');
+    if(!raw){
       monImg.classList.add('hidden');
       monImgFallback.classList.remove('hidden');
       monImgFallback.textContent = "?";
       return;
     }
+    const num = raw.padStart(3, '0');
 
     monImgFallback.classList.add('hidden');
     monImg.classList.remove('hidden');
@@ -1446,6 +1550,9 @@ Number	Name	HP	Attack	Defense	Sp.Attack	Sp.Defense	Speed
       statGrid.replaceChildren();
       finalBox.classList.remove('hidden');
       finalTotal.textContent = String(state.total);
+      // Show score popup
+      modalScore.textContent = String(state.total);
+      scoreModal.classList.remove('hidden');
       return;
     }
 
@@ -1544,6 +1651,31 @@ Number	Name	HP	Attack	Defense	Sp.Attack	Sp.Defense	Speed
 
     btnStart.addEventListener('click', startGame);
     btnPlayAgain.addEventListener('click', startGame);
+
+    // Score popup buttons
+    modalPaid.addEventListener('click', () => {
+      addLogEntry(state.total, true);
+      scoreModal.classList.add('hidden');
+      startGame();
+    });
+    modalUnpaid.addEventListener('click', () => {
+      addLogEntry(state.total, false);
+      scoreModal.classList.add('hidden');
+      startGame();
+    });
+    modalSkip.addEventListener('click', () => {
+      scoreModal.classList.add('hidden');
+      startGame();
+    });
+
+    // Session log buttons
+    btnExportLog.addEventListener('click', exportLog);
+    btnClearLog.addEventListener('click', () => {
+      if(confirm('Clear all session log entries?')){ saveLog([]); renderLog(); }
+    });
+
+    // Render any existing log from a previous session
+    renderLog();
   })();
   </script>
 </body>
