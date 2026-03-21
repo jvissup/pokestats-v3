@@ -24,9 +24,9 @@
       background: radial-gradient(1200px 600px at 30% 0%, #0b1224 0%, var(--bg) 45%);
       color:var(--text);
     }
-    .container{max-width:980px;margin:0 auto;padding:26px 16px 70px}
+    .container{max-width:1100px;margin:0 auto;padding:26px 16px 70px}
     header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:14px;flex-wrap:wrap}
-    h1{margin:0;font-size:26px;letter-spacing:.2px}
+    h1{margin:0;font-size:34px;letter-spacing:.2px}
     .sub{color:var(--muted);margin:6px 0 0;line-height:1.4}
     .panel{
       background:linear-gradient(180deg,var(--panel2),var(--panel));
@@ -35,15 +35,16 @@
       padding:16px;
     }
     .row{display:grid;grid-template-columns:1fr;gap:14px}
-    @media(min-width:980px){.row{grid-template-columns:1.1fr .9fr}}
+    @media(min-width:1100px){.row{grid-template-columns:1fr 1fr}}
 
     .btn{
       cursor:pointer;
       border:1px solid var(--border);
       background:var(--panel2);
       color:var(--text);
-      padding:10px 14px;
+      padding:14px 22px;
       border-radius:12px;
+      font-size:16px;
       font-weight:800;
       transition: transform .06s ease, border-color .2s ease, background .2s ease, opacity .2s ease;
     }
@@ -68,29 +69,39 @@
     }
     .pill .dot{width:8px;height:8px;border-radius:999px;background:var(--good);display:inline-block}
 
-    .kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-    .kpi{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:12px}
-    .kpi .ttl{font-size:12px;color:var(--muted);font-weight:700}
-    .kpi .num{font-size:22px;font-weight:900;margin-top:4px}
+    .kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .kpi{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:16px}
+    .kpi .ttl{font-size:14px;color:var(--muted);font-weight:700}
+    .kpi .num{font-size:36px;font-weight:900;margin-top:6px}
 
-    .filters{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}
-    @media(min-width:620px){.filters{grid-template-columns:1fr 1fr}}
+    .total-display{
+      text-align:center;
+      padding:24px 20px;
+      background:linear-gradient(180deg,rgba(34,211,238,.14),rgba(34,211,238,.04));
+      border:2px solid rgba(34,211,238,.35);
+      border-radius:20px;
+      margin-bottom:18px;
+    }
+    .total-display .lbl{font-size:16px;color:var(--muted);font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
+    .total-display .val{font-size:80px;font-weight:900;color:var(--accent);line-height:1;margin-top:8px}
+
+    .filters{display:none}
     label.opt{display:flex;gap:10px;align-items:center;color:#cbd5e1;font-size:14px}
     input[type="checkbox"]{accent-color:var(--accent);width:18px;height:18px}
 
-    .cardHead{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+    .cardHead{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:14px;text-align:center}
     .sprite{
-      width:72px;height:72px;border-radius:14px;
-      border:1px solid var(--border);
+      width:260px;height:260px;border-radius:20px;
+      border:2px solid var(--border);
       background:#0a1020;
       display:flex;align-items:center;justify-content:center;
       overflow:hidden;
       flex:0 0 auto;
     }
-    .sprite img{width:72px;height:72px;image-rendering:auto}
-    .monTitle{min-width:0}
-    .monTitle .name{font-weight:900;font-size:18px;line-height:1.2}
-    .monTitle .meta{color:var(--muted);font-size:13px;margin-top:3px}
+    .sprite img{width:260px;height:260px;image-rendering:auto}
+    .monTitle{min-width:0;width:100%}
+    .monTitle .name{font-weight:900;font-size:28px;line-height:1.2}
+    .monTitle .meta{color:var(--muted);font-size:15px;margin-top:4px}
 
     .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
     @media(min-width:640px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
@@ -104,8 +115,8 @@
       position:relative;
       overflow:hidden;
     }
-    .stat .label{font-size:12px;color:var(--muted);letter-spacing:.3px;text-transform:uppercase;font-weight:800}
-    .stat .value{font-size:20px;font-weight:900}
+    .stat .label{font-size:13px;color:var(--muted);letter-spacing:.3px;text-transform:uppercase;font-weight:800}
+    .stat .value{font-size:26px;font-weight:900}
     .stat.used{opacity:.65}
     .stat.used::after{
       content:"";
@@ -117,7 +128,7 @@
     }
 
     table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:12px}
-    th,td{padding:10px 10px;border-bottom:1px solid var(--border);font-size:13px}
+    th,td{padding:12px 12px;border-bottom:1px solid var(--border);font-size:15px}
     th{color:#cbd5e1;text-align:left;font-weight:900;background:rgba(255,255,255,.03)}
     tbody tr:last-child td{border-bottom:none}
     .good{color:var(--good);font-weight:900}
@@ -139,25 +150,24 @@
       <div class="pill"><span class="dot"></span> Picks lock immediately</div>
     </header>
 
+    <div class="total-display">
+      <div class="lbl">Total</div>
+      <div class="val" id="kTotal">0</div>
+    </div>
+
     <div class="row">
       <section class="panel">
         <div class="kpis">
           <div class="kpi"><div class="ttl">Step</div><div class="num" id="kStep">–</div></div>
-          <div class="kpi"><div class="ttl">Total</div><div class="num" id="kTotal">0</div></div>
           <div class="kpi"><div class="ttl">Status</div><div class="num" id="kStatus">Ready</div></div>
-        </div>
-
-        <div class="filters">
-          <label class="opt"><input type="checkbox" id="cbIncludeLegendaries" checked> Allow Legendaries/Mythicals</label>
-          <label class="opt"><input type="checkbox" id="cbExcludeMegas" checked> Exclude Mega/Primal/Eternamax</label>
         </div>
 
         <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
           <button class="btn btn-primary" id="btnStart">Start game</button>
-          <button class="btn" id="btnPlayAgain" disabled>Play again</button>
+          <button class="btn" id="btnPlayAgain" disabled>Reset</button>
         </div>
 
-        <div class="footerNote" id="statusLine">Dataset loaded. Use filters then press Start.</div>
+        <div class="footerNote" id="statusLine">Dataset loaded. Press Start to play.</div>
       </section>
 
       <section class="panel">
@@ -1231,8 +1241,6 @@ Number	Name	HP	Attack	Defense	Sp.Attack	Sp.Defense	Speed
 ... (PASTE THE REST OF YOUR EMBEDDED DATASET HERE, unchanged, down to #1025 Pecharunt) ...`;
 
   // --- DOM ---
-  const cbIncludeLegendaries = document.getElementById('cbIncludeLegendaries');
-  const cbExcludeMegas = document.getElementById('cbExcludeMegas');
   const btnStart = document.getElementById('btnStart');
   const btnPlayAgain = document.getElementById('btnPlayAgain');
 
@@ -1359,12 +1367,11 @@ Number	Name	HP	Attack	Defense	Sp.Attack	Sp.Defense	Speed
 
   function applyFilters(){
     pool = filterPool(rawRows, {
-      includeLegendaries: cbIncludeLegendaries.checked,
-      excludeMegas: cbExcludeMegas.checked
+      includeLegendaries: true,
+      excludeMegas: true
     });
 
-    const legNote = rawRows.some(r => r.legendary) ? "" : " (legendary flag not found in dataset)";
-    setStatus(`Playable pool: ${pool.length} Pokémon. Legendaries: ${cbIncludeLegendaries.checked ? "allowed" : "excluded"}${legNote}. Megas: ${cbExcludeMegas.checked ? "excluded" : "allowed"}.`);
+    setStatus(`Playable pool: ${pool.length} Pokémon.`);
   }
 
   function setMonImage(number, name){
@@ -1516,9 +1523,6 @@ Number	Name	HP	Attack	Defense	Sp.Attack	Sp.Defense	Speed
       console.error(e);
       setStatus("Failed to load embedded dataset.");
     }
-
-    cbIncludeLegendaries.addEventListener('change', () => { applyFilters(); });
-    cbExcludeMegas.addEventListener('change', () => { applyFilters(); });
 
     btnStart.addEventListener('click', startGame);
     btnPlayAgain.addEventListener('click', startGame);
