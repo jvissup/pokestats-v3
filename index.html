@@ -1657,7 +1657,7 @@ Number	Name	HP	Attack	Defense	Sp.Attack	Sp.Defense	Speed
   function getPrize(score){
     const n = Number(score);
     // Invalid and non-positive scores intentionally have no prize tier.
-    if(!Number.isFinite(n) || n < 1) return "";
+    if(!Number.isFinite(n) || n <= 0) return "";
     const tier = PRIZE_TIERS.find(t => n >= t.min && n <= t.max);
     return tier ? tier.label : "";
   }
@@ -1671,7 +1671,10 @@ Number	Name	HP	Attack	Defense	Sp.Attack	Sp.Defense	Speed
     PRIZE_TIERS.forEach(tier => {
       const li = document.createElement('li');
       const rangeText = tier.max === Infinity ? `${tier.min}+` : `${tier.min}–${tier.max}`;
-      li.innerHTML = `<b>${rangeText}:</b> ${escapeHtml(tier.label)}`;
+      const rangeLabel = document.createElement('b');
+      rangeLabel.textContent = `${rangeText}:`;
+      li.appendChild(rangeLabel);
+      li.append(` ${tier.label}`);
       prizeBoardList.appendChild(li);
     });
     prizeBoardBonus.replaceChildren();
