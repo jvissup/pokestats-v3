@@ -207,15 +207,8 @@
         <div class="footerNote" id="statusLine">Dataset loaded. Press Start to play.</div>
         <div class="prize-board" aria-label="Available prizes">
           <div class="prize-board-title">Available prizes</div>
-          <ul class="prize-board-list">
-            <li><b>1–80:</b> Slab Valued at $15,000</li>
-            <li><b>81–230:</b> Ascended Heroes Pack</li>
-            <li><b>231–420:</b> 2 Japanese Packs</li>
-            <li><b>421–624:</b> 2 English Base Packs</li>
-            <li><b>625–924:</b> Ascended Heroes Tin</li>
-            <li><b>925+:</b> Phantasmal Flames PC ETB</li>
-          </ul>
-          <div class="prize-board-bonus"><b>Bonus:</b> Mega Dream Pack on exact scores 111, 222, 333, 444, 555, 666, 777, 888, 420, 670, 690.</div>
+          <ul class="prize-board-list" id="prizeBoardList"></ul>
+          <div class="prize-board-bonus" id="prizeBoardBonus"></div>
         </div>
       </section>
 
@@ -1340,6 +1333,8 @@ Number	Name	HP	Attack	Defense	Sp.Attack	Sp.Defense	Speed
   const statGrid = document.getElementById('statGrid');
   const picksTable = document.getElementById('picksTable');
   const usedPill = document.getElementById('usedPill');
+  const prizeBoardList = document.getElementById('prizeBoardList');
+  const prizeBoardBonus = document.getElementById('prizeBoardBonus');
 
   const finalBox = document.getElementById('finalBox');
   const finalTotal = document.getElementById('finalTotal');
@@ -1362,6 +1357,14 @@ Number	Name	HP	Attack	Defense	Sp.Attack	Sp.Defense	Speed
   // --- Game constants ---
   const STAT_KEYS = ["hp","attack","defense","spa","spd","speed"];
   const STAT_LABELS = ["HP","Attack","Defense","Sp. Atk","Sp. Def","Speed"];
+  const PRIZE_TIERS = [
+    { min: 1, max: 80, label: "Slab Valued at $15,000" },
+    { min: 81, max: 230, label: "Ascended Heroes Pack" },
+    { min: 231, max: 420, label: "2 Japanese Packs" },
+    { min: 421, max: 624, label: "2 English Base Packs" },
+    { min: 625, max: 924, label: "Ascended Heroes Tin" },
+    { min: 925, max: Infinity, label: "Phantasmal Flames PC ETB" }
+  ];
 
   // --- Data parsing (same approach as your original) ---
   function parseCSV(csvText, delimiter = '\t') {
@@ -1651,17 +1654,26 @@ Number	Name	HP	Attack	Defense	Sp.Attack	Sp.Defense	Speed
   const MEGA_DREAM_SCORES = new Set([111,222,333,444,555,666,777,888,420,670,690]);
 
   function getPrize(score){
-    if(score < 1)                    return "";
-    if(score <= 80)                  return "🏆 Slab Valued at $15,000";
-    if(score <= 230)                 return "🎴 Ascended Heroes Pack";
-    if(score <= 420)                 return "🎌 2 Japanese Packs";
-    if(score <= 624)                 return "🇺🇸 2 English Base Packs";
-    if(score <= 924)                 return "🥫 Ascended Heroes Tin";
-    return "🔥 Phantasmal Flames PC ETB";
+    const n = Number(score);
+    if(!Number.isFinite(n) || n < 1) return "";
+    const tier = PRIZE_TIERS.find(t => n >= t.min && n <= t.max);
+    return tier ? tier.label : "";
   }
 
   function isMegaDreamScore(score){
-    return MEGA_DREAM_SCORES.has(score);
+    return MEGA_DREAM_SCORES.has(Number(score));
+  }
+
+  function renderPrizeBoard(){
+    prizeBoardList.replaceChildren();
+    PRIZE_TIERS.forEach(tier => {
+      const li = document.createElement('li');
+      const rangeText = tier.max === Infinity ? `${tier.min}+` : `${tier.min}–${tier.max}`;
+      li.innerHTML = `<b>${rangeText}:</b> ${escapeHtml(tier.label)}`;
+      prizeBoardList.appendChild(li);
+    });
+    const bonusScores = [...MEGA_DREAM_SCORES].sort((a,b)=>a-b).join(', ');
+    prizeBoardBonus.innerHTML = `<b>Bonus:</b> Mega Dream Pack on exact scores ${bonusScores}.`;
   }
 
   function startGame(){
@@ -1690,6 +1702,7 @@ Number	Name	HP	Attack	Defense	Sp.Attack	Sp.Defense	Speed
       const rows = parseCSV(EMBEDDED_STATS_CSV, '\t');
       rawRows = normalizeRows(rows);
       applyFilters();
+      renderPrizeBoard();
       renderStep();
     }catch(e){
       console.error(e);
