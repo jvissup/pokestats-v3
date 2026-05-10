@@ -205,7 +205,7 @@
         </div>
 
         <div class="footerNote" id="statusLine">Dataset loaded. Press Start to play.</div>
-        <div class="prize-board" aria-label="Prize tiers based on score ranges">
+        <div class="prize-board" role="region" aria-label="Prize tiers based on score ranges">
           <div class="prize-board-title">Available prizes</div>
           <ul class="prize-board-list" id="prizeBoardList"></ul>
           <div class="prize-board-bonus" id="prizeBoardBonus"></div>
@@ -1650,7 +1650,7 @@ Number	Name	HP	Attack	Defense	Sp.Attack	Sp.Defense	Speed
   const escapeHtml = s => String(s).replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[m]));
 
   // Special scores that earn a bonus Mega Dream Pack:
-  // repeating-digit triples (111–888) plus community-special numbers 420, 670, 690.
+  // repeating-digit triples (111–888) plus the custom promotional scores 420, 670, and 690.
   const MEGA_DREAM_SCORES = new Set([111,222,333,444,555,666,777,888,420,670,690]);
   const BONUS_SCORE_TEXT = [...MEGA_DREAM_SCORES].sort((a,b)=>a-b).join(', ');
 
@@ -1674,7 +1674,11 @@ Number	Name	HP	Attack	Defense	Sp.Attack	Sp.Defense	Speed
       li.innerHTML = `<b>${rangeText}:</b> ${escapeHtml(tier.label)}`;
       prizeBoardList.appendChild(li);
     });
-    prizeBoardBonus.innerHTML = `<b>Bonus:</b> Mega Dream Pack on exact scores ${BONUS_SCORE_TEXT}.`;
+    prizeBoardBonus.replaceChildren();
+    const bonusLabel = document.createElement('b');
+    bonusLabel.textContent = 'Bonus:';
+    prizeBoardBonus.appendChild(bonusLabel);
+    prizeBoardBonus.append(` Mega Dream Pack on exact scores ${BONUS_SCORE_TEXT}.`);
   }
 
   function startGame(){
