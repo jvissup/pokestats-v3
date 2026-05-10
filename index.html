@@ -123,7 +123,9 @@
     }
     .modal-title{font-size:30px;font-weight:900;margin-bottom:4px}
     .modal-sub{font-size:13px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
-    .modal-score{font-size:100px;font-weight:900;color:var(--accent);line-height:1;margin:14px 0 24px}
+    .modal-score{font-size:100px;font-weight:900;color:var(--accent);line-height:1;margin:14px 0 16px}
+    .modal-prize{font-size:20px;font-weight:900;color:#fbbf24;margin-bottom:6px;min-height:1.4em}
+    .modal-bonus{font-size:15px;font-weight:800;color:#a78bfa;margin-bottom:20px;min-height:1.2em}
     .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
     .modal-btn{width:100%;font-size:16px;padding:14px}
     .btn-good{background:linear-gradient(180deg,#22c55e,#16a34a);border-color:#22c55e;color:#fff}
@@ -258,6 +260,8 @@
       <div class="modal-title">🎉 Game Complete!</div>
       <div class="modal-sub">Your final score</div>
       <div class="modal-score" id="modalScore">0</div>
+      <div class="modal-prize" id="modalPrize"></div>
+      <div class="modal-bonus" id="modalBonus"></div>
       <div class="modal-sub" style="margin-bottom:14px">Was this session paid?</div>
       <div class="modal-actions">
         <button class="btn btn-good modal-btn" id="modalPaid">✓ Paid</button>
@@ -1326,6 +1330,8 @@ Number	Name	HP	Attack	Defense	Sp.Attack	Sp.Defense	Speed
   // Score popup
   const scoreModal = document.getElementById('scoreModal');
   const modalScore = document.getElementById('modalScore');
+  const modalPrize = document.getElementById('modalPrize');
+  const modalBonus = document.getElementById('modalBonus');
   const modalPaid = document.getElementById('modalPaid');
   const modalUnpaid = document.getElementById('modalUnpaid');
   const modalSkip = document.getElementById('modalSkip');
@@ -1556,6 +1562,8 @@ Number	Name	HP	Attack	Defense	Sp.Attack	Sp.Defense	Speed
       finalTotal.textContent = String(state.total);
       // Show score popup
       modalScore.textContent = String(state.total);
+      modalPrize.textContent = getPrize(state.total);
+      modalBonus.textContent = isMegaDreamScore(state.total) ? "✨ BONUS: Mega Dream Pack!" : "";
       scoreModal.classList.remove('hidden');
       return;
     }
@@ -1620,6 +1628,24 @@ Number	Name	HP	Attack	Defense	Sp.Attack	Sp.Defense	Speed
   }
 
   const escapeHtml = s => String(s).replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[m]));
+
+  // Special scores that earn a bonus Mega Dream Pack:
+  // repeating-digit triples (111–888) plus community-special numbers 420, 670, 690.
+  const MEGA_DREAM_SCORES = new Set([111,222,333,444,555,666,777,888,420,670,690]);
+
+  function getPrize(score){
+    if(score < 1)                    return "";
+    if(score <= 80)                  return "🏆 Slab Valued at $15,000";
+    if(score <= 230)                 return "🎴 Ascended Heroes Pack";
+    if(score <= 420)                 return "🎌 2 Japanese Packs";
+    if(score <= 624)                 return "🇺🇸 2 English Base Packs";
+    if(score <= 924)                 return "🥫 Ascended Heroes Tin";
+    return "🔥 Phantasmal Flames PC ETB";
+  }
+
+  function isMegaDreamScore(score){
+    return MEGA_DREAM_SCORES.has(score);
+  }
 
   function startGame(){
     if(pool.length < 6){
