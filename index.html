@@ -167,6 +167,11 @@
     .warn{color:var(--bad);font-weight:900}
     .hidden{display:none !important}
     .footerNote{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.4}
+    .prize-board{margin-top:14px;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--panel2)}
+    .prize-board-title{font-weight:900;font-size:13px;letter-spacing:.8px;text-transform:uppercase;color:#fcd34d;margin-bottom:8px}
+    .prize-board-list{margin:0;padding-left:18px;display:grid;gap:4px}
+    .prize-board-list li{font-size:13px;color:#d1d5db;line-height:1.35}
+    .prize-board-bonus{margin-top:8px;font-size:12px;color:#c4b5fd;line-height:1.35}
   </style>
 </head>
 <body>
@@ -200,6 +205,18 @@
         </div>
 
         <div class="footerNote" id="statusLine">Dataset loaded. Press Start to play.</div>
+        <div class="prize-board" aria-label="Available prizes">
+          <div class="prize-board-title">Available prizes</div>
+          <ul class="prize-board-list">
+            <li><b>1–80:</b> Slab Valued at $15,000</li>
+            <li><b>81–230:</b> Ascended Heroes Pack</li>
+            <li><b>231–420:</b> 2 Japanese Packs</li>
+            <li><b>421–624:</b> 2 English Base Packs</li>
+            <li><b>625–924:</b> Ascended Heroes Tin</li>
+            <li><b>925+:</b> Phantasmal Flames PC ETB</li>
+          </ul>
+          <div class="prize-board-bonus"><b>Bonus:</b> Mega Dream Pack on exact scores 111, 222, 333, 444, 555, 666, 777, 888, 420, 670, 690.</div>
+        </div>
       </section>
 
       <section class="panel game-panel">
